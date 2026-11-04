@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Your night dispatcher and your office. In your phone.</title>
+<meta name="description" content="Watches the trucks. Answers the phone. Does the paperwork. Built on your TMS, your email, your phone, within 30 days.">
+<link rel="icon" href="data:,">
+<link rel="preload" href="fonts/manrope-800.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face { font-family: "Manrope"; font-weight: 800; font-display: block; src: url("fonts/manrope-800.woff2") format("woff2"); }
+@font-face { font-family: "Manrope"; font-weight: 700; font-display: block; src: url("fonts/manrope-700.woff2") format("woff2"); }
+:root {
+  --ink: #0f1115; --soft: #4a5260; --mute: #6b7380; --hair: #e3e7ec; --hair-2: #cfd5dd;
+  --panel: #f4f6f9; --accent: #2563eb; --accent-deep: #1d4fd1; --dark: #0b0d10; --green: #22c55e;
+  --display: "Manrope", system-ui, sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { background: #fff; scroll-behavior: smooth; }
+body { background: #fff; color: var(--ink); font: 18px/1.55 var(--body); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+img, video { display: block; max-width: 100%; }
+.wrap { width: min(1200px, 100% - 48px); margin: 0 auto; }
+.num { font-variant-numeric: tabular-nums; }
+h1, h2, h3, .display { font-family: var(--display); font-weight: 800; letter-spacing: -0.03em; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+/* top bar */
+.top { height: 64px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 600; }
+.top .mark { font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; font-size: 17px; }
+.top .mark small { font-weight: 600; color: var(--mute); font-family: var(--body); margin-left: 10px; letter-spacing: 0; }
+.top a { color: inherit; text-decoration: none; }
+.top .call { padding: 10px 16px; border: 1px solid var(--hair-2); border-radius: 999px; }
+/* button */
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 60px; padding: 0 30px; border-radius: 14px; background: var(--accent); color: #fff; font: 600 19px/1 var(--body); text-decoration: none; border: 0; cursor: pointer; }
+.btn:hover { background: var(--accent-deep); }
+.btn.big { min-height: 64px; padding: 0 36px; font-size: 20px; }
+/* hero */
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--hair); background: #fff; }
+.collage { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: 1fr 1fr; gap: 6px; opacity: .15; filter: grayscale(.6) brightness(.86) contrast(1.05); pointer-events: none; }
+.collage video { width: 100%; height: 100%; object-fit: cover; }
+.hero .in { position: relative; padding: 128px 0 112px; }
+.hero h1 { font-size: 104px; line-height: .96; letter-spacing: -0.04em; }
+.hero .sub { font-family: var(--display); font-weight: 700; font-size: 32px; line-height: 1.2; letter-spacing: -0.02em; color: var(--ink); margin-top: 30px; max-width: 30ch; }
+.hero .acts { display: flex; align-items: center; gap: 26px; margin-top: 44px; flex-wrap: wrap; }
+.watchall { display: inline-flex; align-items: center; gap: 12px; font: 600 18px/1.3 var(--body); color: var(--ink); background: none; border: 0; cursor: pointer; text-decoration: none; }
+.watchall i { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; }
+.watchall svg { width: 14px; height: 16px; fill: var(--ink); margin-left: 3px; }
+/* video frame */
+.vid { position: relative; aspect-ratio: 16 / 9; background: #0b0d10; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 24px 48px -24px rgba(15,17,21,.35); }
+.vid video { width: 100%; height: 100%; object-fit: cover; background: #0b0d10; }
+.vid .play { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; cursor: pointer; display: grid; place-items: center; }
+.vid .play i { width: 84px; height: 84px; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0,0,0,.35); transition: transform .15s ease; }
+.vid .play:hover i { transform: scale(1.06); }
+.vid .play svg { width: 36px; height: 36px; fill: var(--ink); margin-left: 4px; }
+.vid.on .play, .vid.on .dur { display: none; }
+.vid .dur { position: absolute; right: 14px; bottom: 12px; padding: 3px 9px; border-radius: 6px; background: rgba(0,0,0,.72); color: #fff; font: 600 13px/18px var(--body); font-variant-numeric: tabular-nums; pointer-events: none; }
+.vid .snd { position: absolute; left: 14px; top: 12px; padding: 4px 10px; border-radius: 6px; background: rgba(0,0,0,.72); color: #fff; font: 600 12px/16px var(--body); letter-spacing: .06em; text-transform: uppercase; pointer-events: none; }
+/* rows */
+.rows { padding: 24px 0 0; }
+.rows .lead { padding: 88px 0 24px; max-width: 760px; }
+.rows .lead h2 { font-size: 48px; line-height: 1.02; }
+.rows .lead p { margin-top: 18px; font-size: 21px; color: var(--soft); max-width: 36ch; }
+.row { display: grid; grid-template-columns: minmax(0, 660px) minmax(0, 1fr); gap: 72px; align-items: center; padding: 64px 0; border-top: 1px solid var(--hair); scroll-margin-top: 24px; }
+.row.flip { grid-template-columns: minmax(0, 1fr) minmax(0, 660px); }
+.row.flip .vid { order: 2; }
+.row .txt .k { font: 600 14px/20px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+.row .txt h2 { font-size: 46px; line-height: 1.02; margin-top: 12px; }
+.row .txt .line { font-family: var(--display); font-weight: 700; font-size: 23px; line-height: 1.25; letter-spacing: -0.015em; margin-top: 16px; max-width: 24ch; }
+.row .txt .body { margin-top: 18px; font-size: 19px; color: var(--soft); max-width: 40ch; }
+.row .txt .watch { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; font: 600 15px/1.3 var(--body); color: var(--ink); background: none; border: 0; cursor: pointer; padding: 0; }
+.row .txt .watch svg { width: 10px; height: 12px; fill: var(--ink); }
+/* three outcomes */
+.three { padding: 112px 0 16px; border-top: 1px solid var(--hair); margin-top: 48px; }
+.three .cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 48px; }
+.three .col h3 { font-size: 30px; line-height: 1.08; margin-top: 32px; }
+.three .col > p { margin-top: 12px; font-size: 18px; color: var(--soft); max-width: 32ch; }
+.vis { min-height: 340px; background: var(--panel); border-radius: 20px; display: grid; place-items: center; padding: 28px 16px; overflow: hidden; }
+.vis.end { padding-bottom: 0; align-items: end; }
+.lock { width: 220px; height: 300px; background: #0b0d10; border-radius: 34px 34px 0 0; border: 6px solid #22262c; border-bottom: 0; color: #fff; position: relative; padding: 18px 14px 0; text-align: center; box-shadow: 0 24px 40px -20px rgba(15,17,21,.5); }
+.lock .silent { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.12); font: 600 11px/14px var(--body); color: rgba(255,255,255,.85); }
+.lock .silent svg { width: 12px; height: 12px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.lock .time { font-family: var(--display); font-weight: 800; font-size: 56px; line-height: 1; letter-spacing: -0.03em; margin-top: 16px; }
+.lock .date { font: 500 13px/18px var(--body); color: rgba(255,255,255,.7); margin-top: 6px; }
+.lock .note { margin-top: 22px; text-align: left; background: rgba(255,255,255,.14); border-radius: 14px; padding: 10px 12px 11px; }
+.lock .note .app { display: flex; justify-content: space-between; font: 600 11px/14px var(--body); color: rgba(255,255,255,.7); }
+.lock .note .app b { color: #fff; }
+.lock .note .msg { margin-top: 4px; font: 600 14px/19px var(--body); color: #fff; }
+.tally { width: 300px; background: #fff; border: 1px solid var(--hair-2); border-radius: 16px; padding: 20px 22px 22px; box-shadow: 0 24px 40px -24px rgba(15,17,21,.35); }
+.tally .hd { display: flex; justify-content: space-between; align-items: center; gap: 12px; font: 600 13px/18px var(--body); color: var(--mute); }
+.tally .hd .ex { padding: 2px 8px; border: 1px dashed var(--hair-2); border-radius: 6px; font: 600 11px/16px var(--body); letter-spacing: .06em; text-transform: uppercase; }
+.tally dl { margin-top: 14px; }
+.tally .r { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--hair); font-size: 16px; }
+.tally .r dd { font-variant-numeric: tabular-nums; font-weight: 600; }
+.tally .tot { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; padding-top: 14px; border-top: 2px solid var(--ink); }
+.tally .tot dt { font: 600 14px/18px var(--body); color: var(--soft); }
+.tally .tot dd { font-family: var(--display); font-weight: 800; font-size: 34px; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.inbox { width: 320px; background: #fff; border: 1px solid var(--hair-2); border-radius: 16px; overflow: hidden; box-shadow: 0 24px 40px -24px rgba(15,17,21,.35); }
+.inbox .hd { padding: 12px 18px; border-bottom: 1px solid var(--hair); font: 600 13px/18px var(--body); color: var(--mute); display: flex; justify-content: space-between; gap: 12px; white-space: nowrap; }
+.inbox .m { padding: 14px 18px 4px; }
+.inbox .m .from { display: flex; justify-content: space-between; font: 600 15px/20px var(--body); }
+.inbox .m .from time { font-weight: 500; color: var(--mute); font-size: 13px; font-variant-numeric: tabular-nums; }
+.inbox .m .subj { margin-top: 2px; font: 600 15px/20px var(--body); color: var(--ink); }
+.inbox .m .prev { margin-top: 2px; font: 400 14px/19px var(--body); color: var(--soft); }
+.inbox .ok { margin: 10px 18px 16px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px 6px 8px; border-radius: 999px; background: #e8f7ee; color: #157347; font: 600 13px/16px var(--body); }
+.inbox .ok i { width: 16px; height: 16px; border-radius: 50%; background: #1f9d55; display: grid; place-items: center; }
+.inbox .ok svg { width: 10px; height: 10px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.inbox .dim { padding: 12px 18px; border-top: 1px solid var(--hair); font: 400 13px/18px var(--body); color: var(--mute); display: flex; justify-content: space-between; gap: 12px; }
+/* close panel */
+.cta { margin: 80px auto 0; background: var(--panel); border-radius: 28px; padding: 80px 80px 72px; scroll-margin-top: 24px; }
+.cta h2 { font-size: 62px; line-height: 1.0; max-width: 16ch; }
+.cta .sub { margin-top: 22px; font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: -0.015em; line-height: 1.3; max-width: 34ch; }
+/* the line with three stops */
+.track { position: relative; margin-top: 64px; padding-top: 48px; border-top: 1px solid var(--hair-2); }
+.track .rail { position: relative; height: 6px; border-radius: 3px; background: var(--hair-2); margin: 0 0 22px; width: calc(100% - ((100% - 80px) / 3 - 36px)); }
+.track .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 3px; background: var(--green); transition: width 2.4s cubic-bezier(.4,0,.2,1); }
+.track .stops { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; }
+.track .stop { position: relative; }
+.track .stop::before { content: ""; position: absolute; left: 0; top: -34px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 3px solid var(--hair-2); transition: border-color .3s ease, background-color .3s ease; }
+.track.go .stop::before { border-color: var(--green); background: var(--green); }
+.track.go .s1::before { transition-delay: .2s; } .track.go .s2::before { transition-delay: 1.3s; } .track.go .s3::before { transition-delay: 2.4s; }
+.track .d { font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); transition: color .3s ease; }
+.track.go .d { color: #15803d; }
+.track.go .s1 .d { transition-delay: .2s; } .track.go .s2 .d { transition-delay: 1.3s; } .track.go .s3 .d { transition-delay: 2.4s; }
+.track h3 { font-size: 30px; line-height: 1.05; margin-top: 10px; }
+.track p.w { margin-top: 10px; font-size: 17px; line-height: 1.5; color: var(--soft); max-width: 30ch; }
+.cta .act { margin-top: 56px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.cta .act span { color: var(--mute); font-size: 15px; }
+/* faq */
+.faq { padding: 96px 0 72px; }
+.faq h2 { font-size: 48px; line-height: 1.02; }
+.faq dl { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 72px; }
+.faq .q { padding: 26px 0; border-top: 1px solid var(--hair); }
+.faq dt { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.015em; line-height: 1.25; }
+.faq dd { margin-top: 10px; color: var(--soft); font-size: 18px; max-width: 46ch; }
+/* footer */
+.foot { padding: 40px 0 48px; border-top: 1px solid var(--hair); display: flex; justify-content: space-between; gap: 24px; font-size: 15px; color: var(--mute); flex-wrap: wrap; }
+.ph { display: inline-block; margin-left: 10px; padding: 2px 8px; border: 1px dashed var(--hair-2); border-radius: 6px; font: 600 11px/16px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--mute); vertical-align: middle; }
+/* full video lightbox */
+.box { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.94); display: none; place-items: center; padding: 24px; }
+.box.open { display: grid; }
+.box video { width: min(1400px, 100%); max-height: calc(100vh - 48px); aspect-ratio: 16 / 9; background: #000; border-radius: 12px; outline: none; }
+.box .x { position: absolute; right: 18px; top: 14px; width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; font: 600 20px/1 var(--body); cursor: pointer; }
+.box .x:hover { background: rgba(255,255,255,.22); }
+@media (max-width: 760px) {
+  body { font-size: 17px; }
+  h1 br { display: none; }
+  .wrap { width: min(1200px, 100% - 32px); }
+  .top { height: 56px; }
+  .top .mark small { display: none; }
+  .top .mark { font-size: 16px; white-space: nowrap; }
+  .top .call { padding: 8px 12px; font-size: 14px; white-space: nowrap; }
+  .top .call .l { display: none; }
+  .collage { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(5, 1fr); gap: 4px; }
+  .hero .in { padding: 56px 0 56px; }
+  .hero h1 { font-size: 50px; line-height: .98; letter-spacing: -0.035em; }
+  .hero .sub { font-size: 22px; margin-top: 18px; }
+  .hero .acts { margin-top: 28px; gap: 18px; }
+  .watchall { font-size: 17px; }
+  .btn, .btn.big { width: 100%; min-height: 56px; font-size: 18px; }
+  .vid { border-radius: 12px; }
+  .vid .dur { right: 10px; top: 10px; bottom: auto; }
+  .vid .snd { left: 10px; top: 10px; }
+  .vid .play i { width: 64px; height: 64px; }
+  .vid .play svg { width: 28px; height: 28px; }
+  .rows .lead { padding: 56px 0 8px; }
+  .rows .lead h2 { font-size: 34px; }
+  .rows .lead p { font-size: 18px; margin-top: 12px; }
+  .row, .row.flip { grid-template-columns: 1fr; gap: 22px; padding: 40px 0; }
+  .row.flip .vid { order: 0; }
+  .row .txt h2 { font-size: 32px; margin-top: 8px; }
+  .row .txt .line { font-size: 20px; margin-top: 10px; }
+  .row .txt .body { font-size: 17px; margin-top: 12px; }
+  .three { padding: 56px 0 8px; margin-top: 24px; }
+  .three .cols { grid-template-columns: 1fr; gap: 40px; }
+  .three .col h3 { font-size: 26px; margin-top: 20px; }
+  .three .col > p { font-size: 17px; }
+  .vis { min-height: 300px; border-radius: 16px; }
+  .lock { width: 200px; height: 270px; }
+  .lock .time { font-size: 50px; }
+  .tally { width: 280px; padding: 16px 18px 18px; }
+  .inbox { width: 300px; }
+  .cta { margin-top: 48px; border-radius: 20px; padding: 40px 24px 36px; }
+  .cta h2 { font-size: 36px; }
+  .cta .sub { font-size: 20px; margin-top: 14px; }
+  .track { margin-top: 36px; padding-top: 28px; }
+  .track .rail { height: auto; width: 6px; margin: 0; position: absolute; left: 6px; top: 28px; bottom: 0; }
+  .track .fill { width: 100%; height: 0; transition: height 2.4s cubic-bezier(.4,0,.2,1); }
+  .track .stops { position: relative; grid-template-columns: 1fr; gap: 28px; padding-left: 40px; }
+  .track .stop::before { left: -40px; top: 2px; }
+  .track h3 { font-size: 26px; }
+  .cta .act { margin-top: 32px; }
+  .faq { padding: 56px 0 40px; }
+  .faq h2 { font-size: 34px; }
+  .faq dl { grid-template-columns: 1fr; margin-top: 20px; gap: 0; }
+  .faq .q { padding: 20px 0; }
+  .faq dt { font-size: 20px; }
+  .faq dd { font-size: 17px; }
+  .foot { padding: 28px 0 36px; flex-direction: column; gap: 8px; }
+  .box { padding: 0; }
+  .box video { border-radius: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .collage video { display: none; }
+  .collage { background: var(--panel); }
+  .track .fill, .track .stop::before, .track .d { transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap top">
+  <div class="mark">Night dispatcher and office <small>for carriers</small></div>
+  <a class="call" href="#call">Book a <span class="l">15 minute </span>call</a>
+</div>
+
+<header class="hero">
+  <div class="collage" aria-hidden="true">
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p1.jpg" src="v/bg1.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p2.jpg" src="v/bg2.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p3.jpg" src="v/bg3.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p4.jpg" src="v/bg4.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p5.jpg" src="v/bg5.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p6.jpg" src="v/bg6.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p7.jpg" src="v/bg7.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p8.jpg" src="v/bg8.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p1.jpg" src="v/bg1.mp4"></video>
+    <video muted loop playsinline autoplay preload="metadata" poster="img/p2.jpg" src="v/bg2.mp4"></video>
+  </div>
+  <div class="wrap in">
+    <h1>Your night dispatcher <br>and your office. <br>In your phone.</h1>
+    <p class="sub">Watches the trucks. Answers the phone. Does the paperwork.</p>
+    <div class="acts">
+      <a class="btn big" href="#call">Book a 15 minute call</a>
+      <button class="watchall" type="button" data-full><i><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg></i>Watch the 90 second video</button>
+    </div>
+  </div>
+</header>
+
+<section class="rows wrap">
+<div class="lead"><h2>Eight things it does, every night.</h2><p>Each one is a clip from the video. Press play to watch it do the job on real screens.</p></div>
+
+<div class="row" id="r1">
+  <figure class="vid"><video playsinline preload="metadata" poster="img/p1.jpg" src="v/p1.mp4" aria-label="Live map with truck 2222 crossing the Gordie Howe bridge, and the new time emailed to the broker automatically at 5:41 p.m."></video><button class="play" type="button" aria-label="Play, 9 seconds"><i><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></i></button><span class="dur num">0:09</span></figure>
+  <div class="txt">
+    <p class="k num">1 of 8</p>
+    <h2>Watches the trucks</h2>
+    <p class="line">Brokers updated automatically.</p>
+    <p class="body">It watches your tracking all night. When a truck crosses the border or gets close to the customer, it emails the broker the new time before he calls to ask. You do nothing.</p>
+    <button class="watch" type="button" data-row="r1"><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>Watch this part, 9 seconds</button>
+  </div>
+</div>
+
+<div class="row flip" id="r2">
+  <figure class="vid"><video playsinline preload="metadata" poster="img/p2.jpg" src="v/p2.mp4" aria-label="The signed POD comes in on WhatsApp, the files get renamed, the portal invoice is filled and the packet uploaded."></video><button class="play" type="button" aria-label="Play, 8 seconds"><i><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></i></button><span class="dur num">0:08</span></figure>
+  <div class="txt">
+    <p class="k num">2 of 8</p>
+    <h2>The paperwork</h2>
+    <p class="line">Every load billed. Nothing slips.</p>
+    <p class="body">When the driver sends the signed POD, it files it the broker's way, fills in the invoice, and uploads the packet to the portal. If the factor bounces one, it fixes it and sends it again. Every load gets billed.</p>
+    <button class="watch" type="button" data-row="r2"><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>Watch this part, 8 seconds</button>
+  </div>
+</div>
+
+<div class="row" id="r3">
+  <figure class="vid"><video playsinline preload="metadata" poster="img/p3.jpg" src="v/p3.mp4" aria-label="9:40 p.m. A broker calls your line about a load. Your line picks up and gives him the truck's time. The next morning: 14 calls answered overnight, 1 put through to you."></video><button class="play" type="button" aria-label="Play with sound, 13 seconds"><i><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></i></button><span class="snd">Sound on</span><span class="dur num">0:13</span></figure>
+  <div class="txt">
+    <p class="k num">3 of 8</p>
+    <h2>Answers the phone</h2>
+    <p class="line">Every call gets answered. You only get the ones that matter.</p>
+    <p class="body">After hours, your dispatch line picks up. A broker asking where the truck is gets the answer from your tracking. Your cell only rings when it is something only you can decide.</p>
+    <button class="watch" type="button" data-row="r3"><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>Watch this part, 13 seconds</button>
+  </div>
+</div>
+
+<div class="row flip" id="r4">
+  <figure class="vid"><video playsinline preload="metadata" poster="img/p4.jpg" src="v/p4.mp4" aria-label="3:10 a.m. A truck breaks down on the 401. Your phone rings. Then the customer is told the pickup moved to 11."></video><button class="play" type="button" aria-label="Play, 7 seconds"><i><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></i></button><span class="dur num">0:07</span></figure>
+  <div class="txt">
+    <p class="k num">4 of 8</p>
+    <h2>Emergencies</h2>
+    <p class="line">Only real emergencies wake you up. Everything else gets handled.</p>
+    <p class="body">A truck breaks down at 3 a.m. It calls you, because that is yours to decide. Then it tells the customer the pickup moved, so you do not have to.</p>
+    <button class="watch" type="button" data-row="r4"><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>Watch this part, 7 seconds</button>
+  </div>
+</div>
+
+<div class="row" id="r5">
+  <figure class="vid"><video playsinline preload="metadata" poster="img/p5.jpg" src="v/p5.mp4" aria-label="A truck has been stuck at a customer's dock for 3 hours. Your phone gets one card: bill Lakeshore for the wait. You tap Approve and the invoice goes out."></video><button class="play" type="button" aria-label="Play, 8 seconds"><i><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></i></button><span class="dur num">0:08</span></figure>
+  <div class="txt">
+    <p class="k num">5 of 8</p>
+    <h2>Approvals</h2>
+    <p class="line">It spots the problem, fixes it, and asks you with one tap.</p>
+    <p class="body">A truck sits at a customer's dock for three hours. It sees the wait, writes the detention invoice, and sends you one card. You tap Approve and it is billed.</p>
+    <button class="watch" type="button" data-row="r5"><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>Watch this part, 8 seconds</button>
+  </div>
+</div>
+
+<div class="row flip" id="r6">
+  <figure class="vid"><video playsinline preload="metadata" poster="img/p6.jpg" src="v/p6.mp4" aria-label="The rate con is read field by field, the TMS is filled in with ticks, one term is flagged, and the driver's sheet comes out in Punjabi."></video><button class="play" type="button" aria-label="Play, 9 seconds"><i><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></i></button><span class="dur num">0:09</span></figure>
+  <div class="txt">
+    <p class="k num">6 of 8</p>
+    <h2>New loads</h2>
+    <p class="line">Loads go in by themselves.</p>
+    <p class="body">A rate con lands in your inbox. It reads it, puts the load in your TMS, and flags anything that does not match what was said on the phone. The driver gets his sheet in his own language.</p>
+    <button class="watch" type="button" data-row="r6"><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>Watch this part, 9 seconds</button>
+  </div>
+</div>
+
+<div class="row" id="r7">
+  <figure class="vid"><video playsinline preload="metadata" poster="img/p7.jpg" src="v/p7.mp4" aria-label="You text a question about load 48245. The answer comes back in seconds with the two places it checked."></video><button class="play" type="button" aria-label="Play, 8 seconds"><i><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></i></button><span class="dur num">0:08</span></figure>
+  <div class="txt">
+    <p class="k num">7 of 8</p>
+    <h2>Text it</h2>
+    <p class="line">Text it a question. It checks your systems and answers in seconds.</p>
+    <p class="body">You text it a question from wherever you are. Customs paid on 48245? It checks the customs portal and the rate con and answers in seconds, with where it looked.</p>
+    <button class="watch" type="button" data-row="r7"><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>Watch this part, 8 seconds</button>
+  </div>
+</div>
+
+<div class="row flip" id="r8">
+  <figure class="vid"><video playsinline preload="metadata" poster="img/p8.jpg" src="v/p8.mp4" aria-label="A rule emailed in plain words, the four-step reply, what it would have done last month, and the rule running from then on."></video><button class="play" type="button" aria-label="Play, 9 seconds"><i><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></i></button><span class="dur num">0:09</span></figure>
+  <div class="txt">
+    <p class="k num">8 of 8</p>
+    <h2>Your rules</h2>
+    <p class="line">Say it like you'd say it to staff.</p>
+    <p class="body">Email it a rule in plain words, the way you would tell a new hire. It writes back the steps it will follow, shows what that rule would have done last month, and runs it from then on.</p>
+    <button class="watch" type="button" data-row="r8"><svg viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0l10 6-10 6z"/></svg>Watch this part, 9 seconds</button>
+  </div>
+</div>
+</section>
+
+<section class="three wrap"><div class="cols"><div class="col">
+  <div class="vis end"><div class="lock">
+    <span class="silent"><svg viewBox="0 0 24 24"><path d="M6 17h12l-1.5-2V11a4.5 4.5 0 0 0-9 0v4z"/><path d="M10 20h4"/><path d="M4 4l16 16"/></svg>Ringer off</span>
+    <p class="time num">3:10</p>
+    <p class="date">Tuesday, October 28</p>
+    <div class="note"><p class="app"><b>Dispatch</b><span class="num">3:12 a.m.</span></p><p class="msg">Handled. Nothing needs you.</p></div>
+  </div></div>
+  <h3>The worst parts of the job, gone.</h3>
+  <p>Night calls, chasing paperwork, waiting on brokers. It does those.</p>
+</div><div class="col">
+  <div class="vis"><div class="tally">
+    <p class="hd"><span>What you stop paying for, a year</span><span class="ex">example</span></p>
+    <dl>
+      <div class="r"><dt>Night dispatcher</dt><dd class="num">$48,000</dd></div>
+      <div class="r"><dt>Office help</dt><dd class="num">$36,000</dd></div>
+      <div class="r"><dt>Missed billing</dt><dd class="num">$12,000</dd></div>
+      <div class="tot"><dt>Saved a year</dt><dd class="num">$96,000</dd></div>
+    </dl>
+  </div></div>
+  <h3>Tens of thousands saved a year.</h3>
+  <p>No one to hire for nights. No load left unbilled.</p>
+</div><div class="col">
+  <div class="vis"><div class="inbox">
+    <p class="hd"><span>Dana's inbox</span><span>Great Lakes Freight</span></p>
+    <div class="m">
+      <p class="from"><span>Northline dispatch</span><time class="num">5:41 p.m.</time></p>
+      <p class="subj">48213 ETA</p>
+      <p class="prev">Unit 2222 crossed at Detroit 5:40 p.m. On your Columbus lot about 10:45 p.m., parked for the 6:00 a.m.</p>
+    </div>
+    <span class="ok"><i><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Answered before she asked</span>
+    <p class="dim"><span>Midwest Pallet Exchange</span><span class="num">4:48 p.m.</span></p>
+  </div></div>
+  <h3>Better service than a bigger carrier.</h3>
+  <p>Brokers get told first. Calls get answered every time.</p>
+</div></div></section>
+
+<section class="cta wrap" id="call">
+  <h2>Save tens of thousands while giving better service.</h2>
+  <p class="sub">Built on your TMS, your email, your phone, within 30 days, guaranteed.</p>
+  <div class="track" id="track">
+    <div class="rail"><div class="fill"></div></div>
+    <div class="stops">
+      <div class="stop s1"><p class="d num">Day 3</p><h3>We tell you what we can deliver.</h3><p class="w">We walk your nights, your inbox and your TMS. You get the list in writing.</p></div>
+      <div class="stop s2"><p class="d num">Day 10</p><h3>We set it up for you.</h3><p class="w">The first piece runs on your trucks. The phone, the trucks or the paperwork, whichever hurts most.</p></div>
+      <div class="stop s3"><p class="d num">Day 30</p><h3>It's fully live.</h3><p class="w">All eight pieces running on your systems. You text it, it answers.</p></div>
+    </div>
+  </div>
+  <div class="act"><a class="btn big" href="#call">Book a 15 minute call</a><span>15 minutes. You bring one bad night, we bring the plan.</span></div>
+</section>
+
+<section class="faq wrap"><h2>Questions owners ask</h2><dl><div class="q"><dt>What do I need to change?</dt><dd>Nothing. It works on the TMS, the email and the phone line you already have. You forward the dispatch line after hours and give it a login, the same as a new office hire. That is the setup.</dd></div><div class="q"><dt>What if it answers wrong?</dt><dd>Anything it is not sure of, and anything about money, comes to you first. It never quotes a rate, accepts a load or gives out your cell. Every answer shows where it looked, so you can check it in one tap.</dd></div><div class="q"><dt>What does it cost?</dt><dd>Price to be decided. Less than one night dispatcher. We put a number on it on the call, after we have seen your nights.</dd></div><div class="q"><dt>How fast is it live?</dt><dd>Day 3 you get the scope. Day 10 the first piece is running on your trucks. Day 30 all of it is live. 30 days, guaranteed.</dd></div></dl></section>
+
+<footer class="foot wrap"><span>Brampton, Ontario</span><span></span><span>Text or call, number to come<span class="ph">placeholder</span></span></footer>
+
+<div class="box" id="box" role="dialog" aria-modal="true" aria-label="The 90 second video">
+  <button class="x" type="button" aria-label="Close">✕</button>
+  <video controls playsinline preload="none" poster="img/full.jpg" src="v/full.mp4"></video>
+</div>
+
+<script>
+(function () {
+  var frames = Array.prototype.slice.call(document.querySelectorAll('.row .vid'));
+  var box = document.getElementById('box');
+  var full = box.querySelector('video');
+
+  function pauseOthers(except) {
+    frames.forEach(function (f) {
+      var v = f.querySelector('video');
+      if (v !== except && !v.paused) v.pause();
+    });
+    if (except !== full && !full.paused) full.pause();
+  }
+  function reset(f) {
+    var v = f.querySelector('video');
+    f.classList.remove('on');
+    v.removeAttribute('controls');
+    v.currentTime = 0;
+    v.load();
+  }
+  function play(f) {
+    var v = f.querySelector('video');
+    pauseOthers(v);
+    f.classList.add('on');
+    v.setAttribute('controls', '');
+    v.muted = false;
+    var p = v.play();
+    if (p && p.catch) p.catch(function () { reset(f); });
+  }
+  frames.forEach(function (f) {
+    var v = f.querySelector('video');
+    f.querySelector('.play').addEventListener('click', function () { play(f); });
+    v.addEventListener('ended', function () { reset(f); });
+    v.addEventListener('play', function () { pauseOthers(v); f.classList.add('on'); v.setAttribute('controls', ''); });
+  });
+  document.querySelectorAll('[data-row]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var row = document.getElementById(b.getAttribute('data-row'));
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      play(row.querySelector('.vid'));
+    });
+  });
+
+  function openBox() {
+    pauseOthers(full);
+    box.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    full.muted = false;
+    var p = full.play();
+    if (p && p.catch) p.catch(function () {});
+  }
+  function closeBox() {
+    full.pause();
+    box.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.querySelectorAll('[data-full]').forEach(function (b) { b.addEventListener('click', openBox); });
+  box.querySelector('.x').addEventListener('click', closeBox);
+  box.addEventListener('click', function (e) { if (e.target === box) closeBox(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && box.classList.contains('open')) closeBox(); });
+  full.addEventListener('ended', closeBox);
+
+  // The hero loops: play only while the hero is on screen.
+  var loops = Array.prototype.slice.call(document.querySelectorAll('.collage video'));
+  var hero = document.querySelector('.hero');
+  var track = document.getElementById('track');
+  // On phones the rail runs down the left side, from the first dot to the last.
+  function fitRail() {
+    var rail = track.querySelector('.rail'), stops = track.querySelectorAll('.stop'), last = stops[stops.length - 1];
+    if (window.matchMedia('(max-width: 760px)').matches) {
+      var t = track.getBoundingClientRect().top, a = stops[0].getBoundingClientRect().top, b = last.getBoundingClientRect().top;
+      rail.style.top = (a - t + 2) + 'px';
+      rail.style.height = (b - a + 18) + 'px';
+    } else { rail.style.top = ''; rail.style.height = ''; }
+  }
+  fitRail();
+  window.addEventListener('resize', fitRail);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        loops.forEach(function (v) {
+          if (e.isIntersecting) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+          else v.pause();
+        });
+      });
+    }, { threshold: 0.05 }).observe(hero);
+
+    // The line with three stops fills once, when it comes into view.
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        track.classList.add('go');
+        track.querySelector('.fill').style.width = '100%';
+        track.querySelector('.fill').style.height = '100%';
+        io.disconnect();
+      });
+    }, { threshold: 0.4 });
+    io.observe(track);
+  } else {
+    track.classList.add('go');
+  }
+})();
+</script>
+</body>
+</html>
